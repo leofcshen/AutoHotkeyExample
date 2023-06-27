@@ -1,22 +1,72 @@
 #Requires AutoHotkey v2.0
-#SingleInstance force
+#SingleInstance force ;只允許一個實例
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
+TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ; Scissors ; Scissors
 
 ;幫 SciTE4AutoHotkey 加熱鍵
 HotIfWinActive A_ScriptName " - SciTE4AutoHotkey"
-Hotkey "~^S", ReloadOnSave
+Hotkey "^S", ReloadOnSave
 
 ReloadOnSave(ThisHotkey) {
-	MsgBox "reload"
-	Sleep 2000
+	Sleep 1000
 	Reload
 }
 
-;Win + C
-#C::{
-	timesTotal := 10
-	timesRun := 1
+;執行外部方法並回傳結果(會閃 cmd 視窗)
+RunCommand(pType, pCommand) {
+	return ComObject("WScript.Shell").Exec(pType " " pCommand).StdOut.ReadAll()
+}
+
+;執行外部方法並回傳結果(會閃 cmd 視窗)
+RunWaitOne(pCommand){
+	return ComObject("WScript.Shell").Exec(A_ComSpec " /C " pCommand).StdOut.ReadAll()
+}
+
+;執行外部方法並回傳結果
+RunResult(pType, pCommand) {
+	;指定執行結果暫存位置
+	tempFile := A_ScriptDir "\" DllCall("GetCurrentProcessId") ".txt"
+	;執行並輸出結果到暫存位置
+	if (pType = "python") {
+		RunWait A_ComSpec " /c " pType " " pCommand " >>" tempFile,,"Hide"
+	} else {
+		RunWait A_ComSpec " /c " pType " -ExecutionPolicy Bypass " pCommand " >>" tempFile,,"Hide"
+	}
+	;開啟暫存檔
+	;Run tempFile
+	;取結果值
+	result := FileRead(tempFile)
+	;刪除暫存檔
+	FileDelete(tempFile)
+	return result
+}
+
+;Win + Q ;複製今天日期到剪貼簿
+#Q::{
+	A_Clipboard := FormatTime(A_Now, "yyyyMMdd")
+	TrayTip "已複製今天日期：" A_Clipboard, "Win + Q", "Iconi"
+}
+
+;Win + B ;呼叫外部 function
+#B::{
+	;呼叫 .ps1 PowerShell
+	;result := RunCommand("powershell", A_ScriptDir '\PowerShellFunction.ps1 3 3')
+	;result := RunWaitOne('powershell ' A_ScriptDir '\PowerShellFunction.ps1 2 3')
+	;result := RunResult("powershell", A_ScriptDir "\PowerShellFunction.ps1 4 4")
+
+	;呼叫 .py Python
+	;result := RunCommand("python", A_ScriptDir '\PythonFunction.py 3 3 1')
+	;result := RunWaitOne('python ' A_ScriptDir '\PythonFunction.py 2 3 3')
+	result := RunResult("python", A_ScriptDir "\PythonFunction.py 2 3 4")
+
+	MsgBox result
+}
+
+;Win + Z
+#Z::{
+	timesTotal := 3
+	timesRun := 0
 
 	array := [
 		["C:\Program Files", "%ProgramFiles%"],
@@ -48,7 +98,9 @@ ReloadOnSave(ThisHotkey) {
 	;Goto 新測試
 	NewTest:
 
+	timesRun++
 	if timesRun = timesTotal + 1 {
+		MsgBox "測試結束"
 		return
 	}
 
@@ -57,20 +109,29 @@ ReloadOnSave(ThisHotkey) {
 	answer := array[number][2]
 
 	;Goto 重新測試
-	ReTest:
+	Retry:
 
-	IB := InputBox("第 " timesRun " / " timesTotal "次測試，請輸入啟動 " array[number][1] " 的指令", "指令測試")
+	exam :=	(
+		"題目數：" array.Length "`n"
+		"第 " timesRun " / " timesTotal "次測試，請輸入啟動下列服務的指令`n"
+		array[number][1]
+	)
 
-	if IB.Result = "OK" {
-		if IB.value = answer{
-			MsgBox "輸入 '" IB.value "' 正確."
-			timesRun++
-			Goto NewTest
-		} else {
-			if MsgBox("輸入 '" IB.value "' 錯誤.", , "R/C") ="Retry"
-				Goto ReTest
-			else
-				MsgBox "啟動 " array[number][1] " 的指令為 " array[number][2]
-		}
+	IB := InputBox(exam, "快捷鍵指令練習")
+
+	if IB.Result = "Cancel" {
+		return
 	}
+
+	if IB.value = answer {
+		MsgBox "輸入 '" IB.value "' 正確。"
+		goto NewTest
+	}
+
+	if MsgBox("輸入 '" IB.value "' 錯誤.", , "R/C") = "Retry" {
+		goto Retry
+	}
+
+	MsgBox Format("啟動 {1} 的指令為 {2}", array[number][1], array[number][2])
+	goto NewTest
 }
