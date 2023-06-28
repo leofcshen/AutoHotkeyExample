@@ -1,69 +1,50 @@
 #Requires AutoHotkey v2.0
-#SingleInstance force ;只允許一個實例
+#SingleInstance Force ;跳過對話框自動替換舊實例
+
+;引用腳本
+#Include "%A_ScriptDir%\AHK_Script\ToolTipOptions.ahk"
+#Include "%A_ScriptDir%\AHK_Script\Snipper.ahk"
+#Include "%A_ScriptDir%\AHK_Script\MyScript.ahk"
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
-TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ; Scissors ; Scissors
 
-;幫 SciTE4AutoHotkey 加熱鍵
-HotIfWinActive A_ScriptName " - SciTE4AutoHotkey"
-Hotkey "^S", ReloadOnSave
+TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ;設定圖示
 
-ReloadOnSave(ThisHotkey) {
-	Sleep 1000
-	Reload
-}
+ToolTipOptions.Init()
+ToolTipOptions.SetFont("s48 underline italic", "Consolas")
+ToolTipOptions.SetMargins(12, 12, 12, 12)
+ToolTipOptions.SetTitle("test title" , 4)
+ToolTipOptions.SetColors("Green", "White")
 
-;執行外部方法並回傳結果(會閃 cmd 視窗)
-RunCommand(pType, pCommand) {
-	return ComObject("WScript.Shell").Exec(pType " " pCommand).StdOut.ReadAll()
-}
+reloadDelay := 4
+MyClass.AddReloadHotkey(reloadDelay)
 
-;執行外部方法並回傳結果(會閃 cmd 視窗)
-RunWaitOne(pCommand){
-	return ComObject("WScript.Shell").Exec(A_ComSpec " /C " pCommand).StdOut.ReadAll()
-}
-
-;執行外部方法並回傳結果
-RunResult(pType, pCommand) {
-	;指定執行結果暫存位置
-	tempFile := A_ScriptDir "\" DllCall("GetCurrentProcessId") ".txt"
-	;執行並輸出結果到暫存位置
-	if (pType = "python") {
-		RunWait A_ComSpec " /c " pType " " pCommand " >>" tempFile,,"Hide"
-	} else {
-		RunWait A_ComSpec " /c " pType " -ExecutionPolicy Bypass " pCommand " >>" tempFile,,"Hide"
-	}
-	;開啟暫存檔
-	;Run tempFile
-	;取結果值
-	result := FileRead(tempFile)
-	;刪除暫存檔
-	FileDelete(tempFile)
-	return result
-}
-
-;Win + Q ;複製今天日期到剪貼簿
+;{ 快捷鍵區域
+;{ Win + Q ;複製今天日期到剪貼簿
 #Q::{
-	A_Clipboard := FormatTime(A_Now, "yyyyMMdd")
-	TrayTip "已複製今天日期：" A_Clipboard, "Win + Q", "Iconi"
+	A_Clipboard := MyClass().GetToday_yyyyMMdd()
+	message := "已複製今天日期：" A_Clipboard
+	ToolTip message
+	SetTimer () => ToolTip(), -3000
+	TrayTip message, "Win + Q", "Iconi"
 }
-
-;Win + B ;呼叫外部 function
+;}
+;{ Win + B ;呼叫外部 function
 #B::{
 	;呼叫 .ps1 PowerShell
-	;result := RunCommand("powershell", A_ScriptDir '\PowerShellFunction.ps1 3 3')
-	;result := RunWaitOne('powershell ' A_ScriptDir '\PowerShellFunction.ps1 2 3')
-	;result := RunResult("powershell", A_ScriptDir "\PowerShellFunction.ps1 4 4")
+	;result := MyClass.RunCommand("powershell", A_ScriptDir '\PowerShellFunction.ps1 3 3')
+	;result := MyClass.RunWaitOne('powershell ' A_ScriptDir '\PowerShellFunction.ps1 2 3')
+	;result := MyClass.RunResult("powershell", A_ScriptDir "\PowerShellFunction.ps1 4 4")
 
 	;呼叫 .py Python
-	;result := RunCommand("python", A_ScriptDir '\PythonFunction.py 3 3 1')
-	;result := RunWaitOne('python ' A_ScriptDir '\PythonFunction.py 2 3 3')
-	result := RunResult("python", A_ScriptDir "\PythonFunction.py 2 3 4")
+	;result := MyClass.RunCommand("python", A_ScriptDir '\PythonFunction.py 3 3 1')
+	result := MyClass.RunWaitOne('python ' A_ScriptDir '\PythonFunction.py 2 3 3')
+	;result := MyClass.RunResult("python", A_ScriptDir "\PythonFunction.py 2 3 4")
 
 	MsgBox result
 }
-
-;Win + Z
+;}
+;{ Win + Z ;執行指令練習
 #Z::{
 	timesTotal := 3
 	timesRun := 0
@@ -135,3 +116,7 @@ RunResult(pType, pCommand) {
 	MsgBox Format("啟動 {1} 的指令為 {2}", array[number][1], array[number][2])
 	goto NewTest
 }
+;}
+;}
+
+
