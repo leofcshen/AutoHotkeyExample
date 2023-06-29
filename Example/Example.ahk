@@ -7,41 +7,53 @@
 #Include "%A_ScriptDir%\AHK_Script\MyScript.ahk"
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
-
 TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ;設定圖示
 
-ToolTipOptions.Init()
-ToolTipOptions.SetFont("s48 underline italic", "Consolas")
-ToolTipOptions.SetMargins(12, 12, 12, 12)
-ToolTipOptions.SetTitle("test title" , 4)
-ToolTipOptions.SetColors("Green", "White")
+reloadDelaySecond := 1
+MyClass.AddReloadHotkey(reloadDelaySecond)
 
-reloadDelay := 4
-MyClass.AddReloadHotkey(reloadDelay)
+externalFunctionFoler := A_ScriptDir '\ExternalFunction'
+
+;ToolTipDispCentre(data,ctime){
+;	CoordMode "ToolTip"
+;	;ToolTip data
+;	WinGetPos(&X, &Y, &tW, &tH, ahk_class tooltips_class32)
+;	ToolTip data, (A_ScreenWidth-tW)/2, (A_ScreenHeight-tW)/2
+;	CoordMode "ToolTip" "Relative"
+;	if  CTime > 0 {
+;		SetTimer () => ToolTip(), -ctime
+;	}
+;	return
+;}
 
 ;{ 快捷鍵區域
 ;{ Win + Q ;複製今天日期到剪貼簿
 #Q::{
 	A_Clipboard := MyClass().GetToday_yyyyMMdd()
-	message := "已複製今天日期：" A_Clipboard
-	ToolTip message
-	SetTimer () => ToolTip(), -3000
-	TrayTip message, "Win + Q", "Iconi"
+	MyTooltip "已複製今天日期：" A_Clipboard
+	;MyTooltip "test1", 1
+	;MyTooltip "test2", 2
+	;MyTooltip "test4", 4
+
 }
 ;}
-;{ Win + B ;呼叫外部 function
+;{ Win + B ;呼叫外部檔案
 #B::{
-	;呼叫 .ps1 PowerShell
-	;result := MyClass.RunCommand("powershell", A_ScriptDir '\PowerShellFunction.ps1 3 3')
-	;result := MyClass.RunWaitOne('powershell ' A_ScriptDir '\PowerShellFunction.ps1 2 3')
-	;result := MyClass.RunResult("powershell", A_ScriptDir "\PowerShellFunction.ps1 4 4")
+	try {
+		;呼叫 .ps1 PowerShell
+		;result := MyClass.RunCommand("powershell", externalFunctionFoler '\PowerShellFunction.ps1', '3 3')
+		;result := MyClass.RunWaitOne('powershell', externalFunctionFoler '\PowerShellFunction.ps1', '2 3')
+		;result := MyClass.RunResult("powershell", externalFunctionFoler "\PowerShellFunction.ps1", '4 4')
 
-	;呼叫 .py Python
-	;result := MyClass.RunCommand("python", A_ScriptDir '\PythonFunction.py 3 3 1')
-	result := MyClass.RunWaitOne('python ' A_ScriptDir '\PythonFunction.py 2 3 3')
-	;result := MyClass.RunResult("python", A_ScriptDir "\PythonFunction.py 2 3 4")
+		;呼叫 .py Python
+		;result := MyClass.RunCommand("python", externalFunctionFoler '\PythonFunction.py', '3 3 1')
+		;result := MyClass.RunWaitOne('python',externalFunctionFoler '\PythonFunction.py', '2 3 3')
+		result := MyClass.RunResult("python", externalFunctionFoler "\PythonFunction.py", "2 3 4")
 
-	MsgBox result
+		MsgBox result
+	} catch as e {
+		MyClass.ShowError(e)
+	}
 }
 ;}
 ;{ Win + Z ;執行指令練習
@@ -117,6 +129,8 @@ MyClass.AddReloadHotkey(reloadDelay)
 	goto NewTest
 }
 ;}
+
+
 ;}
 
 
