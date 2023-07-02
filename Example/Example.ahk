@@ -2,15 +2,16 @@
 #SingleInstance Force ;跳過對話框自動替換舊實例
 
 ;引用腳本
-#Include "%A_ScriptDir%\AHK_Library\ToolTipOptions.ahk"
-#Include "%A_ScriptDir%\AHK_Library\Snipper.ahk"
-#Include "%A_ScriptDir%\AHK_Library\MyLibrary.ahk"
+#Include "%A_ScriptDir%\AutoHotKey_Library\ToolTipOptions.ahk"
+#Include "%A_ScriptDir%\AutoHotkey_Library\Snipper.ahk"
+#Include "%A_ScriptDir%\AutoHotkey_Library\MyLibrary.ahk"
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
 TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ;設定圖示
 
 reloadDelaySecond := 1
 MyClass.AddReloadHotkey(reloadDelaySecond)
+;===============================================================
 
 externalFunctionFoler := A_ScriptDir '\ExternalFunction'
 
