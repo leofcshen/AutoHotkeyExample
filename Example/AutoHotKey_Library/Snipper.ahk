@@ -1,4 +1,4 @@
-﻿; Snipper https://www.autohotkey.com/boards/viewtopic.php?f=83&t=115622&hilit=snipper
+﻿; Snipper
 ; Fanatic Guru
 ;
 ; Version 2023 04 29
