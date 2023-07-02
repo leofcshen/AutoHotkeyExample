@@ -2,9 +2,9 @@
 #SingleInstance Force ;跳過對話框自動替換舊實例
 
 ;引用腳本
-#Include "%A_ScriptDir%\AHK_Script\ToolTipOptions.ahk"
-#Include "%A_ScriptDir%\AHK_Script\Snipper.ahk"
-#Include "%A_ScriptDir%\AHK_Script\MyScript.ahk"
+#Include "%A_ScriptDir%\AHK_Library\ToolTipOptions.ahk"
+#Include "%A_ScriptDir%\AHK_Library\Snipper.ahk"
+#Include "%A_ScriptDir%\AHK_Library\MyScript.ahk"
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
 TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ;設定圖示
@@ -129,7 +129,6 @@ externalFunctionFoler := A_ScriptDir '\ExternalFunction'
 	goto NewTest
 }
 ;}
-
 
 ;}
 

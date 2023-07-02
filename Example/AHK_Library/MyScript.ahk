@@ -59,7 +59,11 @@ class MyClass extends Common {
 	;{ 新增重新載入腳本熱鍵在編輯器存檔時觸發
 	static AddReloadHotkey(pReloadDelaySecond) {
 		; 編輯器新增熱鍵把存檔觸發到重新載入腳本
-		editorList := [" - SciTE4AutoHotkey", " - Notepad++", " - 記事本"]
+		editorList := [
+			" - SciTE4AutoHotkey",
+			" - Notepad++", " - 記事本",
+			" - AutoHotkeyExample - Visual Studio Code"
+		]
 		for index, editor in editorList {
 			HotIfWinActive A_ScriptName editor
 			Hotkey "~^S", ReloadOnSave.Bind(pReloadDelaySecond)
