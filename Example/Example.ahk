@@ -4,7 +4,7 @@
 ;引用腳本
 #Include "%A_ScriptDir%\AHK_Library\ToolTipOptions.ahk"
 #Include "%A_ScriptDir%\AHK_Library\Snipper.ahk"
-#Include "%A_ScriptDir%\AHK_Library\MyScript.ahk"
+#Include "%A_ScriptDir%\AHK_Library\MyLibrary.ahk"
 
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
 TraySetIcon(A_WinDir '\system32\shell32.dll', 15) ;設定圖示
