@@ -1,4 +1,4 @@
-# Read Me
+# ReadMe
 
 ## Snipper
 
