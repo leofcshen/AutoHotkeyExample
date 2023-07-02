@@ -1,6 +1,4 @@
-﻿; https://www.autohotkey.com/boards/viewtopic.php?f=83&t=113308&p=504775&hilit=GUI#p504775
-
-; ======================================================================================================================
+﻿; ======================================================================================================================
 ; ToolTipOptions        -  additional options for ToolTips
 ;
 ; Tooltip control       -> https://learn.microsoft.com/en-us/windows/win32/controls/tooltip-control-reference
