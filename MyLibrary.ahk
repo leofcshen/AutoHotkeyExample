@@ -167,3 +167,7 @@ MyTooltip(pText, pQuadrant := 1, pTime := 3000) {
 }
 #SuspendExempt false
 ;}
+
+OpenRecycleBin() {
+	Run "::{645ff040-5081-101b-9f08-00aa002f954e}"
+}
