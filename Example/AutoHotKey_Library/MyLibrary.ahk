@@ -158,6 +158,16 @@ MyTooltip(pText, pQuadrant := 1, pTime := 3000) {
 }
 ;}
 
+;{ Alt + P ;禁用或啟用腳本
+#SuspendExempt
+!P::{
+	Suspend
+	TraySetIcon A_IsSuspended ? "IconStop.png" : "IconRun.png"
+	TrayTip A_ScriptName, (A_IsSuspended ? "停用" : "啟用") " AutoHotKey 腳本", "Iconi"
+}
+#SuspendExempt false
+;}
+
 OpenRecycleBin() {
 	Run "::{645ff040-5081-101b-9f08-00aa002f954e}"
 }
