@@ -1,12 +1,57 @@
 ﻿#Requires AutoHotkey v2.0
 
-;IniWrite "Content/IconRun.png", "", "Basic", "IconRun"
-;IniWrite "Content/IconStop.png", "", "Basic", "IconStop"
-;IniWrite "1", "", "Basic", "ReloadDelaySecond"
-;IniWrite "SciTE", "", "Basic", "Editor"
+;{產生執行檔要用的檔案
+IF A_IsCompiled {
+	SplitPath A_ScriptName, , , , &nameNoExt
+	scriptFolder := nameNoExt
 
-;{	自訂錯誤
-;		檔案不存在
+	;	指定腳本要使用的路徑
+	fileInstallPath := A_AppData ;C:\Users\<UserName>\AppData\Roaming
+	fileInstallFolder := fileInstallPath "\" scriptFolder
+
+	;	指定 config 路徑
+	configPath := fileInstallFolder "\config.ini"
+
+	;	建立 config
+	if !FileExist(configPath){
+		FileAppend "
+		(
+			[Basic]
+			IconRun = Content/IconRun.png
+			IconStop = Content/IconStop.png
+			ReloadDelaySecond = 1
+			Editor = SciTE
+		)",
+		configPath, "UTF-16-RAW"
+	}
+
+	;	新增子資料夾
+	arr := []
+	Loop Files, "*.", "D" {
+		DirCreate A_AppData "\" scriptFolder "\" A_LoopFileName
+		arr.Push(A_LoopFileName)
+	}
+
+	DirCreate fileInstallFolder "\Content"
+
+	;	子資料夾設定要新增的檔案 ;編譯 FileInstall Source 不能用參數
+	for id, dir in arr {
+		Loop Files, A_ScriptDir "\" dir "\*.*", "R" {
+			;FileInstall dir "\" A_LoopFileName, A_Desktop "\" scriptFolder "\" dir "\" A_LoopFileName, 1
+		}
+	}
+
+	FileInstall "Content\IconRun.ico", fileInstallFolder "\Content\IconRun.ico", 1
+	FileInstall "Content\IconRun.png", fileInstallFolder "\Content\IconRun.png", 1
+	FileInstall "Content\IconStop.png", fileInstallFolder "\Content\IconStop.png", 1
+
+	;	修改腳本的工作目錄
+	SetWorkingDir fileInstallFolder
+}
+;}
+
+;{自訂錯誤
+;	檔案不存在
 class FileNotExistError extends Error {
 	__New(pFile){
 		message := "檔案不存在" pFile
@@ -15,16 +60,16 @@ class FileNotExistError extends Error {
 }
 ;}
 
-;{	自訂物件
+;{自訂物件
 class Common {
 
 }
 
 class MyClass extends Common {
-	;{	回傳今天日期_yyyyMMdd
+	;{回傳今天日期_yyyyMMdd
 	GetToday_yyyyMMdd() => FormatTime(A_Now, "yyyyMMdd")
 	;}
-	;{	呼叫外部檔案並回傳結果(會閃 cmd 視窗)
+	;{呼叫外部檔案並回傳結果(會閃 cmd 視窗)
 	static RunCommand(pLanguage, pFile, pParameters) {
 		if not FileExist(pFile){
 			throw FileNotExistError(pFile)
@@ -33,7 +78,7 @@ class MyClass extends Common {
 		return	ComObject("WScript.Shell").Exec(pLanguage " " pFile " " pParameters).StdOut.ReadAll()
 	}
 	;}
-	;{	呼叫外部檔案並回傳結果(會閃 cmd 視窗)
+	;{呼叫外部檔案並回傳結果(會閃 cmd 視窗)
 	static RunWaitOne(pLanguage, pFile, pParameters) {
 		if not FileExist(pFile){
 			throw FileNotExistError(pFile)
@@ -42,15 +87,15 @@ class MyClass extends Common {
 		return ComObject("WScript.Shell").Exec(A_ComSpec " /C " pLanguage " " pFile " " pParameters).StdOut.ReadAll()
 	}
 	;}
-	;{	呼叫外部檔案並回傳結果(不會閃 cmd 視窗，結果先存檔再取值)
+	;{呼叫外部檔案並回傳結果(不會閃 cmd 視窗，結果先存檔再取值)
 	static RunResult(pLanguage, pFile, pParameters?) {
 	if not FileExist(pFile){
 		throw FileNotExistError(pFile)
 	}
 
-	;指定執行結果暫存位置
-	tempFile := A_ScriptDir "\" DllCall("GetCurrentProcessId") ".txt"
-	;執行並輸出結果到暫存位置
+	;	指定執行結果暫存位置
+	tempFile := A_WorkingDir "\" DllCall("GetCurrentProcessId") ".txt"
+	;	執行並輸出結果到暫存位置
 	if IsSet(pParameters)
 		RunWait A_ComSpec " /c " pLanguage ((pLanguage = "python") ? " " : " -ExecutionPolicy Bypass ") pFile " " pParameters " >>" tempFile,,"Hide"
 	else
@@ -90,6 +135,7 @@ class MyClass extends Common {
 	;}
 }
 
+
 class Config {
 	static ConfigName := "config.ini"
 	static SectionBasic := "Basic"
@@ -101,8 +147,12 @@ class Config {
 }
 ;}
 
-;{	自訂方法
-;{	取得螢幕資訊
+;{自訂方法
+GetFileNameWithoutExt(pFile) {
+	return SubStr(pFile, 1, InStr(pFile, ".") - 1)
+}
+
+;{取得螢幕資訊
 GetMonitorInfo() {
 	MonitorCount := MonitorGetCount()
 	MonitorPrimary := MonitorGetPrimary()
@@ -123,8 +173,8 @@ GetMonitorInfo() {
 }
 ;}
 
-;{	使用自訂 ToolTip
-;			pQuadrant： ToolTip 顯示的象限，0 為置中
+;{使用自訂 ToolTip
+;	pQuadrant： ToolTip 顯示的象限，0 為置中
 MyTooltip(pText, pQuadrant := 1, pTime := 3000) {
 	ToolTipOptions.Init()
 	ToolTipOptions.SetFont("s48 underline italic", "Consolas")
@@ -159,12 +209,12 @@ MyTooltip(pText, pQuadrant := 1, pTime := 3000) {
 }
 ;}
 
-;		打開資源回收桶
+;	打開資源回收桶
 OpenRecycleBin() {
 	Run "::{645ff040-5081-101b-9f08-00aa002f954e}"
 }
 
-;{	編輯腳本
+;{編輯腳本
 EditScript(pEditor := "Notepad") {
 	switch pEditor {
 		case "Notepad":
@@ -181,15 +231,15 @@ EditScript(pEditor := "Notepad") {
 }
 ;}
 
-;		檢查字串是否以關鍵字開始
+;	檢查字串是否以關鍵字開始
 IsStartWith(pString, pKeyword) => SubStr(pString, 1, StrLen(pKeyword)) = pKeyword
 
-;		顯示熱鍵清單
+;	顯示熱鍵清單
 ShowHotkeyList(*) {
 	ListHotkeys
 }
 
-;{	取得腳本所在的根資料夾名稱
+;{取得腳本所在的根資料夾名稱
 GetScriptRootFolder() => SubStr(A_ScriptDir, InStr(A_ScriptDir, "\", , -1) + 1)
 
 GetScriptRootFolder_2() {
@@ -199,7 +249,7 @@ GetScriptRootFolder_2() {
 }
 ;}
 
-;{	存檔時要自動 reload 的檔案清單
+;{存檔時要自動 reload 的檔案清單
 GetReloadFileList() {
 	myConfig := "config.ini"
 	scriptFolder := GetScriptRootFolder()
@@ -224,8 +274,8 @@ GetReloadFileList() {
 ;}
 ;}
 
-;{	自訂熱鍵
-;{	加存檔自動 reload 熱鍵，編輯器新增熱鍵把存檔觸發到重新載入腳本
+;{自訂熱鍵
+;{加存檔自動 reload 熱鍵，編輯器新增熱鍵把存檔觸發到重新載入腳本
 if !A_IsCompiled {
 	reloadDelaySecond := Config.ReloadDelaySecond
 	saveHotkey := "~^S"
@@ -254,7 +304,7 @@ if !A_IsCompiled {
 }
 ;}
 
-;{	Alt + P ;禁用或啟用腳本
+;{Alt + P ;禁用或啟用腳本
 #SuspendExempt
 !P::{
 	Suspend
@@ -264,10 +314,10 @@ if !A_IsCompiled {
 #SuspendExempt false
 ;}
 
-;		Win + Shift + E ;編輯腳本
+;	Win + Shift + E ;編輯腳本
 #+E::EditScript(Config.Editor)
 
-;{	Win + F2 ;自訂選單
+;{Win + F2 ;自訂選單
 !RButton::{
 	MyMenu := Menu()
 	MyMenu.Add("使用說明", ShowHotkeyList)
@@ -281,7 +331,7 @@ if !A_IsCompiled {
 ;}
 ;}
 
-;{	工作列圖示右鍵選單
+;{工作列圖示右鍵選單
 tray := A_TrayMenu ; 为了方便.
 ;tray.delete ; 删除标准项目.
 tray.add ; 分隔线
