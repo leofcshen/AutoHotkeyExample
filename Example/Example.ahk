@@ -1,16 +1,44 @@
 #Requires AutoHotkey v2.0
-#SingleInstance Force ;跳過對話框自動替換舊實例
+;	跳過對話框自動替換舊實例
+#SingleInstance Force
 
-;引用腳本
-#Include %A_ScriptDir%\AutoHotkey_Library\Snipper.ahk
-#Include %A_ScriptDir%\AutoHotkey_Library\MyLibrary.ahk
-#Include %A_ScriptDir%\AutoHotKey_Library\ToolTipOptions.ahk
+;{產生要引用的清單檔
+if !A_IsCompiled {
+	libraryListPath := "Lib\LibraryList.ahk"
 
-TraySetIcon "IconRun.png", , 1
+	;	刪除舊的檔案
+	if FileExist(libraryListPath) {
+		FileDelete libraryListPath
+	}
+
+	libArray := []
+	;	取得 lib 下 .ahk
+	Loop Files, A_ScriptDir "\Lib\*.ahk", "F" {
+		;	去掉副檔名
+		libName := SubStr(A_LoopFileName, 1, InStr(A_LoopFileName, ".") - 1)
+		;	去掉檔名 _日期 結尾的
+		afterUnderLine := SubStr(libName, InStr(libName, "_"))
+
+		if (StrLen(afterUnderLine) != 9) {
+			libArray.Push(libName)
+		}
+	}
+
+	;	產生檔案
+	FileAppend "#Requires AutoHotkey v2.0`n`n",	libraryListPath, "UTF-8"
+
+	for library in libArray {
+		FileAppend "#Include <" library ">`n",	libraryListPath
+	}
+}
+;}
+
+;	引用腳本
+#Include <LibraryList>
+;	設定圖示
+TraySetIcon Config.IconRun, , 1
+;	Windows 通知
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
-
-reloadDelaySecond := 1
-MyClass.AddReloadHotkey(reloadDelaySecond)
 
 ;===============================================================
 
