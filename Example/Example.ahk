@@ -6,8 +6,6 @@
 #Include %A_ScriptDir%\AutoHotkey_Library\MyLibrary.ahk
 #Include %A_ScriptDir%\AutoHotKey_Library\ToolTipOptions.ahk
 
-;TraySetIcon(A_WinDir '\system32\shell32.dll', 260) ;設定圖示
-;TraySetIcon('shell32.dll', 260) ;設定圖示
 TraySetIcon "IconRun.png", , 1
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
 
@@ -16,21 +14,33 @@ MyClass.AddReloadHotkey(reloadDelaySecond)
 
 ;===============================================================
 
-externalFunctionFoler := A_ScriptDir '\ExternalFunction'
-
-;ToolTipDispCentre(data,ctime){
-;	CoordMode "ToolTip"
-;	;ToolTip data
-;	WinGetPos(&X, &Y, &tW, &tH, ahk_class tooltips_class32)
-;	ToolTip data, (A_ScreenWidth-tW)/2, (A_ScreenHeight-tW)/2
-;	CoordMode "ToolTip" "Relative"
-;	if  CTime > 0 {
-;		SetTimer () => ToolTip(), -ctime
-;	}
-;	return
-;}
+externalFunctionFolder := A_ScriptDir '\ExternalFunction'
 
 ;{ 快捷鍵區域
+;{ Win + M ;開啟選單
+#M::{
+	;建立子選單
+	Submenu1 := Menu()
+	Submenu1.Add "Item A", MenuHandler
+	Submenu1.Add "Item B", MenuHandler
+
+	MyMenu := Menu()
+	MyMenu.Add "Item &1", MenuHandler
+	MyMenu.Add "I&tem 2", MenuHandler
+	MyMenu.Add ;分隔線
+	MyMenu.Add "My Submenu", Submenu1
+	MyMenu.Add ;分隔線
+	MyMenu.Add "Item 3", MenuHandler
+	MyMenu.Add ;分隔線
+	MyMenu.AddStandard() ;新增標準選單
+
+	MenuHandler(Item, *) {
+		MsgBox "You selected " Item
+	}
+
+	MyMenu.Show
+}
+;}
 ;{ Win + Q ;複製今天日期到剪貼簿
 #Q::{
 	A_Clipboard := MyClass().GetToday_yyyyMMdd()
@@ -38,21 +48,20 @@ externalFunctionFoler := A_ScriptDir '\ExternalFunction'
 	;MyTooltip "test1", 1
 	;MyTooltip "test2", 2
 	;MyTooltip "test4", 4
-
 }
 ;}
 ;{ Win + B ;呼叫外部檔案
 #B::{
 	try {
 		;呼叫 .ps1 PowerShell
-		;result := MyClass.RunCommand("powershell", externalFunctionFoler '\PowerShellFunction.ps1', '3 3')
-		;result := MyClass.RunWaitOne('powershell', externalFunctionFoler '\PowerShellFunction.ps1', '2 3')
-		;result := MyClass.RunResult("powershell", externalFunctionFoler "\PowerShellFunction.ps1", '4 4')
+		;result := MyClass.RunCommand("powershell", externalFunctionFolder '\PowerShellFunction.ps1', '3 3')
+		;result := MyClass.RunWaitOne('powershell', externalFunctionFolder '\PowerShellFunction.ps1', '2 3')
+		;result := MyClass.RunResult("powershell", externalFunctionFolder "\PowerShellFunction.ps1", '4 4')
 
 		;呼叫 .py Python
-		;result := MyClass.RunCommand("python", externalFunctionFoler '\PythonFunction.py', '3 3 1')
-		;result := MyClass.RunWaitOne('python',externalFunctionFoler '\PythonFunction.py', '2 3 3')
-		result := MyClass.RunResult("python", externalFunctionFoler "\PythonFunction.py", "2 3 4")
+		;result := MyClass.RunCommand("python", externalFunctionFolder '\PythonFunction.py', '3 3 1')
+		;result := MyClass.RunWaitOne('python',externalFunctionFolder '\PythonFunction.py', '2 3 3')
+		result := MyClass.RunResult("python", externalFunctionFolder "\PythonFunction.py", "2 3 4")
 
 		MsgBox result
 	} catch as e {
