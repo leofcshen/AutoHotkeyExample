@@ -1,29 +1,34 @@
 ﻿#Requires AutoHotkey v2.0
 
-;{產生執行檔要用的檔案
+;{執行檔動作
 IF A_IsCompiled {
+	;{產生要用的檔案
 	SplitPath A_ScriptName, , , , &nameNoExt
 	scriptFolder := nameNoExt
 
-	;	指定腳本要使用的路徑
-	fileInstallPath := A_AppData ;C:\Users\<UserName>\AppData\Roaming
+	;	指定腳本要使用的路徑 C:\Users\<UserName>\AppData\Roaming
+	fileInstallPath := A_AppData
 	fileInstallFolder := fileInstallPath "\" scriptFolder
 
 	;	指定 config 路徑
 	configPath := fileInstallFolder "\config.ini"
 
-	;	建立 config
+	;	如果 config 不存在就建立
 	if !FileExist(configPath){
 		FileAppend "
 		(
 			[Basic]
-			IconRun = Content/IconRun.png
-			IconStop = Content/IconStop.png
-			ReloadDelaySecond = 1
-			Editor = SciTE
+			;腳本運行圖片
+			IconRun=Content/IconRun.png
+			;腳本暫停圖片
+			IconStop=Content/IconStop.png
+			;詢問開機啟動
+			AskAddToStart=1
 		)",
-		configPath, "UTF-16-RAW"
+		configPath, "UTF-16"
 	}
+
+
 
 	;	新增子資料夾
 	arr := []
@@ -44,9 +49,37 @@ IF A_IsCompiled {
 	FileInstall "Content\IconRun.ico", fileInstallFolder "\Content\IconRun.ico", 1
 	FileInstall "Content\IconRun.png", fileInstallFolder "\Content\IconRun.png", 1
 	FileInstall "Content\IconStop.png", fileInstallFolder "\Content\IconStop.png", 1
+	;}
 
 	;	修改腳本的工作目錄
 	SetWorkingDir fileInstallFolder
+}
+;}
+
+;{是否加到開機自動運行
+if Config.AskAddToStart {
+	myGui := Gui()
+	myGui.Add("Text", "x8 y0 w120 h23 +0x200", "是否加到開機自動運行？")
+	ckbDontAskNextTime := myGui.Add("CheckBox", "x136 y0 w120 h23", "下次不再詢問")
+	myGui.Add("Button", "x48 y32 w80 h23", "&Yes").OnEvent("Click", OnEventHandler.Bind(true))
+	myGui.Add("Button", "x136 y32 w80 h23", "&No").OnEvent("Click", OnEventHandler.Bind(false))
+	myGui.Title := "開機自動運行"
+	myGui.Show("w265 h64")
+
+	OnEventHandler(pIsAddToStart, *) {
+		;	是否勾選 "下次不再詢問"
+		if ckbDontAskNextTime.Value {
+			IniWrite "0", Config.Name, Config.SectionBasic, "AskAddToStart"
+		}
+
+		;	是否加到開機自動運行
+		if pIsAddToStart {
+			SplitPath(A_ScriptFullPath, &fileName)
+			FileCreateShortcut(A_ScriptFullPath, A_AppData . "\Microsoft\Windows\Start Menu\Programs\Startup\" . fileName . ".lnk")
+		}
+
+		WinClose(myGui)
+	}
 }
 ;}
 
@@ -137,13 +170,15 @@ class MyClass extends Common {
 
 
 class Config {
-	static ConfigName := "config.ini"
+	static Name := "config.ini"
 	static SectionBasic := "Basic"
 
-	static ReloadDelaySecond := IniRead(this.ConfigName, this.SectionBasic, "ReloadDelaySecond")
-	static Editor := IniRead(this.ConfigName, this.SectionBasic, "Editor")
-	static IconRun := IniRead(this.ConfigName, this.SectionBasic, "IconRun")
-	static IconStop := IniRead(this.ConfigName, this.SectionBasic, "IconStop")
+	static ReloadDelaySecond := !A_IsCompiled ? IniRead(this.Name, this.SectionBasic, "ReloadDelaySecond") : "1"
+	static Editor := !A_IsCompiled ? IniRead(this.Name, this.SectionBasic, "Editor") : "Notepad"
+
+	static IconRun := IniRead(this.Name, this.SectionBasic, "IconRun")
+	static IconStop := IniRead(this.Name, this.SectionBasic, "IconStop")
+	static AskAddToStart := IniRead(this.Name, this.SectionBasic, "AskAddToStart")
 }
 ;}
 
@@ -275,7 +310,7 @@ GetReloadFileList() {
 ;}
 
 ;{自訂熱鍵
-;{加存檔自動 reload 熱鍵，編輯器新增熱鍵把存檔觸發到重新載入腳本
+;{非執行檔加存檔自動 reload 熱鍵，編輯器新增熱鍵把存檔觸發到重新載入腳本
 if !A_IsCompiled {
 	reloadDelaySecond := Config.ReloadDelaySecond
 	saveHotkey := "~^S"
@@ -315,7 +350,9 @@ if !A_IsCompiled {
 ;}
 
 ;	Win + Shift + E ;編輯腳本
-#+E::EditScript(Config.Editor)
+if !A_IsCompiled {
+	#+E::EditScript(Config.Editor)
+}
 
 ;{Win + F2 ;自訂選單
 !RButton::{
