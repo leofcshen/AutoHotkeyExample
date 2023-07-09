@@ -37,68 +37,18 @@ if !A_IsCompiled {
 #Include <LibraryList>
 ;	設定圖示
 TraySetIcon Config.IconRun, , 1
-;	Windows 通知
+;	Windows 啟動通知
 TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
 
-;===============================================================
-
-externalFunctionFolder := A_ScriptDir '\ExternalFunction'
-
-;{ 快捷鍵區域
-;{ Win + M ;開啟選單
-#M::{
-	;建立子選單
-	Submenu1 := Menu()
-	Submenu1.Add "Item A", MenuHandler
-	Submenu1.Add "Item B", MenuHandler
-
-	MyMenu := Menu()
-	MyMenu.Add "Item &1", MenuHandler
-	MyMenu.Add "I&tem 2", MenuHandler
-	MyMenu.Add ;分隔線
-	MyMenu.Add "My Submenu", Submenu1
-	MyMenu.Add ;分隔線
-	MyMenu.Add "Item 3", MenuHandler
-	MyMenu.Add ;分隔線
-	MyMenu.AddStandard() ;新增標準選單
-
-	MenuHandler(Item, *) {
-		MsgBox "You selected " Item
-	}
-
-	MyMenu.Show
-}
-;}
-;{ Win + Q ;複製今天日期到剪貼簿
-#Q::{
+;{方法區域
+;	複製今天日期
+GetTodayDate(*) {
 	A_Clipboard := MyClass().GetToday_yyyyMMdd()
 	MyTooltip "已複製今天日期：" A_Clipboard
-	;MyTooltip "test1", 1
-	;MyTooltip "test2", 2
-	;MyTooltip "test4", 4
 }
-;}
-;{ Win + B ;呼叫外部檔案
-#B::{
-	try {
-		;呼叫 .ps1 PowerShell
-		;result := MyClass.RunCommand("powershell", externalFunctionFolder '\PowerShellFunction.ps1', '3 3')
-		;result := MyClass.RunWaitOne('powershell', externalFunctionFolder '\PowerShellFunction.ps1', '2 3')
-		;result := MyClass.RunResult("powershell", externalFunctionFolder "\PowerShellFunction.ps1", '4 4')
 
-		;呼叫 .py Python
-		;result := MyClass.RunCommand("python", externalFunctionFolder '\PythonFunction.py', '3 3 1')
-		;result := MyClass.RunWaitOne('python',externalFunctionFolder '\PythonFunction.py', '2 3 3')
-		result := MyClass.RunResult("python", externalFunctionFolder "\PythonFunction.py", "2 3 4")
-
-		MsgBox result
-	} catch as e {
-		MyClass.ShowError(e)
-	}
-}
-;}
-;{ Win + Z ;執行指令練習
-#Z::{
+;{執行指令練習
+RunPractice(*) {
 	timesTotal := 3
 	timesRun := 0
 
@@ -170,6 +120,86 @@ externalFunctionFolder := A_ScriptDir '\ExternalFunction'
 	goto NewTest
 }
 ;}
+;}
+
+;{Win + Z ;自訂選單
+#Z::{
+	MyMenu := Menu()
+	MyMenu.Add "執行指令練習", RunPractice
+	MyMenu.Add "複製今天日期", GetTodayDate
+	MyMenu.Add "隨機資料夾", RandomFolder
+	MyMenu.Add("List", kk)
+	MyMenu.Add
+	MyMenu.AddStandard()
+
+	kk(*) => ListHotkeys()
+	RandomFolder(*) {
+
+	}
+
+	MyMenu.Show
+}
+;}
+;===============================================================
+
+
+
+;{ 快捷鍵區域
+;{ Win + M ;開啟選單
+#M::{
+	;建立子選單
+	Submenu1 := Menu()
+	Submenu1.Add "Item A", MenuHandler
+	Submenu1.Add "Item B", MenuHandler
+
+	MyMenu := Menu()
+	MyMenu.Add "Item &1", MenuHandler
+	MyMenu.Add "I&tem 2", MenuHandler
+	MyMenu.Add ;分隔線
+	MyMenu.Add "My Submenu", Submenu1
+	MyMenu.Add ;分隔線
+	MyMenu.Add "Item 3", MenuHandler
+	MyMenu.Add ;分隔線
+	MyMenu.AddStandard() ;新增標準選單
+
+	MenuHandler(Item, *) {
+		MsgBox "You selected " Item
+	}
+
+	MyMenu.Show
+}
+;}
+
+;	Win + Q ;複製今天日期到剪貼簿
+#Q::GetTodayDate
+
+;{ Win + B ;呼叫外部檔案
+#B::{
+	try {
+		externalFunctionFolder := A_ScriptDir '\ExternalFunction'
+		arr := []
+
+		;呼叫 .ps1 PowerShell
+		arr.Push(MyClass.RunCommand("powershell", externalFunctionFolder '\PowerShellFunction.ps1', '3 3'))
+		arr.Push(MyClass.RunWaitOne('powershell', externalFunctionFolder '\PowerShellFunction.ps1', '2 3'))
+		arr.Push(MyClass.RunResult("powershell", externalFunctionFolder "\PowerShellFunction.ps1", '4 4'))
+
+		;呼叫 .py Python
+		arr.Push(MyClass.RunCommand("python", externalFunctionFolder '\PythonFunction.py', '3 3 1'))
+		arr.Push(MyClass.RunWaitOne('python',externalFunctionFolder '\PythonFunction.py', '2 3 3'))
+		arr.Push(MyClass.RunResult("python", externalFunctionFolder "\PythonFunction.py", "2 3 4"))
+
+		for v in arr {
+			MsgBox v
+		}
+	} catch as e {
+		MyClass.ShowError(e)
+	}
+}
+;}
+
+
+
 
 ;}
 
