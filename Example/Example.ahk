@@ -37,14 +37,13 @@ if !A_IsCompiled {
 #Include <LibraryList>
 ;	設定圖示
 TraySetIcon Config.IconRun, , 1
-;	Windows 啟動通知
-TrayTip A_ScriptName, "啟動 AutoHotKey 腳本", "Iconi"
+;	Windows 通知
+TrayTip "啟動腳本：" . A_ScriptName, "Hello " . A_UserName, "Iconi"
 
 ;{方法區域
 ;	複製今天日期
 GetTodayDate(*) {
-	A_Clipboard := MyClass().GetToday_yyyyMMdd()
-	MyTooltip "已複製今天日期：" A_Clipboard
+	MyTooltip "已複製今天日期：" A_Clipboard := MyClass().GetToday_yyyyMMdd()
 }
 
 ;{執行指令練習
@@ -122,6 +121,9 @@ RunPractice(*) {
 ;}
 ;}
 
+;	Win + Q ;複製今天日期到剪貼簿
+#Q::GetTodayDate
+
 ;{Win + Z ;自訂選單
 #Z::{
 	MyMenu := Menu()
@@ -140,9 +142,8 @@ RunPractice(*) {
 	MyMenu.Show
 }
 ;}
+
 ;===============================================================
-
-
 
 ;{ 快捷鍵區域
 ;{ Win + M ;開啟選單
@@ -170,8 +171,7 @@ RunPractice(*) {
 }
 ;}
 
-;	Win + Q ;複製今天日期到剪貼簿
-#Q::GetTodayDate
+
 
 ;{ Win + B ;呼叫外部檔案
 #B::{
